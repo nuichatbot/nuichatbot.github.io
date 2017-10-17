@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chatbot - Admin</title>
+
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/datepicker3.css" rel="stylesheet">
+<link href="css/styles.css" rel="stylesheet">
+
+<!--Icons-->
+<script src="js/lumino.glyphs.js"></script>
+
+<!--[if lt IE 9]>
+<script src="js/html5shiv.js"></script>
+<script src="js/respond.min.js"></script>
+<![endif]-->
+
+<style>
+a:hover {cursor:pointer}
+</style>
+
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#sidebar-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#"><span>Chatbot</span>Admin</a>
+			</div>
+
+		</div><!-- /.container-fluid -->
+	</nav>
+
+	<div id="sidebar-collapse" class="col-sm-3 col-lg-2 sidebar">
+		<ul class="nav menu">
+			<li class="active"><a href="index.html"><svg class="glyph stroked app-window"><use xlink:href="#stroked-app-window"></use></svg> Main info</a></li>
+			<!--li><a href="forms.html"><svg class="glyph stroked pencil"><use xlink:href="#stroked-pencil"></use></svg> Control</a></li-->
+			<li><a href="logout.html"><svg class="glyph stroked male-user"><use xlink:href="#stroked-male-user"></use></svg> Logout</a></li>
+			<li role="presentation" class="divider"></li>
+			<li role="presentation" class="divider"></li>
+		</ul>
+		<div class="attribution">Template by <a href="http://www.medialoot.com/item/lumino-admin-bootstrap-template/">Medialoot</a><br/><a href="http://www.glyphs.co" style="color: #333;">Icons by Glyphs</a></div>
+	</div><!--/.sidebar-->
+
+	<div class="col-sm-9 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
+		<div class="row">
+			<ol class="breadcrumb">
+				<li><a href="#"><svg class="glyph stroked home"><use xlink:href="#stroked-home"></use></svg></a></li>
+			</ol>
+		</div><!--/.row-->
+
+		<div class="row">
+			<div class="col-lg-12">
+				<h2>Main info</h2>
+			</div>
+			<div class="col-md-12">
+				<div class="panel panel-success"> <!-- panel-default -->
+					<div class="panel-heading" id="nuiheader"></div>
+					<div class="panel-body">
+						<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6" id="nuiwr"></div>
+						<div class="col-md-6 col-lg-6 col-sm-6 col-xs-6" id="nuiinfo">info.</div>
+						<div class="col-md-12 col-lg-12 col-sm-12 col-xs-12" id="nuicr"></div>
+					</div>
+				</div>
+			</div>
+
+		</div><!-- /.row -->
+
+	</div><!--/.main-->
+
+	<script src="js/jquery-1.11.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<!--script src="js/chart.min.js"></script>
+	<script src="js/chart-data.js"></script>
+	<script src="js/easypiechart.js"></script>
+	<script src="js/easypiechart-data.js"></script-->
+	<script src="js/bootstrap-datepicker.js"></script>
+	<script src="js/cookie.js"></script>
+	<script>
+
+		fetchData = function () {
+			makeRequest("/admin/read",
+				{token: getAppToken()},
+				function (data) {
+					if (data == "ERR_AUTH") {
+						redirectToLogin();
+						return;
+					}
+
+					data = JSON.parse(data);
+					var wr = data.pstat+"<br/>"+
+						"<b>WAITROOM ("+data.waitroom.ids.length+" people):</b><br/>";
+					var wr_list_temp = [];
+					data.waitroom.ids.forEach(function(e,i) {
+						wr_list_temp.push({
+							id: e,
+							gender: data.waitroom.gender[i],
+							time: data.waitroom.time[i]
+						});
+					});
+					wr_list_temp.sort(function(a,b) {
+						if (a.time > b.time) return -1;
+						if (a.time < b.time) return 1;
+						return 0;
+					});
+					wr_list_temp.forEach(function(e) {
+						var gender = "ko biết";
+						if (e.gender == 1) gender = "nữ"
+						else if (e.gender == 2) gender = "nam";
+						wr += "<button class=\"btn btn-default\" onclick=\"uinfo("+e.id+")\">"+
+							e.id+" - "+gender+"<br/>"+getDateStr(e.time)+
+							"</button><br/>";
+					});
+					$('#nuiwr').html(wr);
+
+					var cr = "<br/><b>CHATROOM ("+data.chatroom.ids.length+" pairs - "+
+						(data.chatroom.ids.length*2)+" people"+
+						"):</b><br/>";
+					data.chatroom.ids.sort(function(a,b) {
+						if (a.starttime > b.starttime) return -1;
+						if (a.starttime < b.starttime) return 1;
+						return 0;
+					});
+					data.chatroom.ids.forEach(function(e,i) {
+						cr += "<a onclick=\"uinfo("+e.id1+")\">"+e.id1+"</a> - "+
+							"<a onclick=\"uinfo("+e.id2+")\">"+e.id2+"</a> - "+
+							getDateStr(e.starttime)+"<br/>";
+						//console.log(getDateStr(e.starttime))
+					});
+					$('#nuicr').html(cr);
+					$('#nuiheader').html(getDateStr(-1));
+				},
+				function (xhr, ajaxOptions, thrownError) {
+					alert("Có lỗi xảy ra, xin hãy thử lại \n"+thrownError);
+				}
+			);
+		}
+
+		setInterval(fetchData, 5000);
+
+		fetchData();
+
+		function uinfo(id) {
+			makeRequest(
+				"/admin/userinfo",
+				{token: getAppToken(),id:id},
+				function (data) {
+					data = JSON.parse(data);
+					if (data.error) {
+						$('#nuiinfo').html("<b>id: "+id+ '</b><br/>Cannot get user info<br/>'+
+							"<button class=\"btn btn-danger\" onclick=\"removeUsr("+id+")\">End chat</button>");
+						return;
+					}
+					var profile_pic_id = data.profile_pic.match(/[0-9]+_[0-9]+_[0-9]+/);
+					profile_pic_id = profile_pic_id[0].split('_');
+					$('#nuiinfo').html("<b>id: "+id+ '</b><br/>' +data.last_name + ', ' + data.first_name + '<br/>' + data.locale + ', ' + data.gender +
+						', <a href=\"https://fb.com/'+profile_pic_id[1]+'\" target=\"_blank\">link fb</a><br/>' +
+						"<img src=\""+data.profile_pic+"\" width=\"100px\"/><br/>"+
+						"<button class=\"btn btn-danger\" onclick=\"removeUsr("+id+")\">End chat</button>");
+				},
+				function (xhr, ajaxOptions, thrownError) {
+					$('#nuiinfo').text(thrownError);
+				}
+			);
+		}
+		
+		function removeUsr(id) {
+			var cf = confirm("Bạn có chắc muốn end chat người này?");
+			if (cf) makeRequest(
+				"/admin/edit/chatroom",
+				{token: getAppToken(),id:id,type:'del'},
+				function (res) {
+					if (res == 'OK') {
+						$('#nuiinfo').html("Ended chat for id "+id);
+						fetchData();
+					}
+				},
+				function () {}
+			);
+		}
+
+		function getDateStr(time) {
+			var currentdate;
+			if (time == -1) currentdate = new Date();
+			else currentdate = new Date(time);
+			return currentdate.getDate() + "/"
+				+ (currentdate.getMonth()+1)  + "/"
+				+ currentdate.getFullYear() + " "
+				+ (currentdate.getHours()<10? "0":"") + currentdate.getHours() + ":"
+				+ (currentdate.getMinutes()<10? "0":"") + currentdate.getMinutes() + ":"
+				+ (currentdate.getSeconds()<10? "0":"") + currentdate.getSeconds() + ".";
+		}
+
+		!function ($) {
+			$(document).on("click","ul.nav li.parent > a > span.icon", function(){
+				$(this).find('em:first').toggleClass("glyphicon-minus");
+			});
+			$(".sidebar span.icon").find('em:first').addClass("glyphicon-plus");
+		}(window.jQuery);
+
+		$(window).on('resize', function () {
+		  if ($(window).width() > 768) $('#sidebar-collapse').collapse('show')
+		})
+		$(window).on('resize', function () {
+		  if ($(window).width() <= 767) $('#sidebar-collapse').collapse('hide')
+		})
+	</script>
+</body>
+
+</html>
