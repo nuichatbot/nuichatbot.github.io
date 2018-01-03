@@ -186,7 +186,7 @@ a:hover {cursor:pointer}
 		function sendBroadcast() {
 			var cf = confirm("Bạn có chắc muốn gửi?");
 			if (cf) makeRequest(
-				"/send/broadcast/",
+				"/admin/send/broadcast/",
 				{token: getAppToken(),text:$("#annonce").val()},
 				function (res) {
 					if (res == 'OK') {
