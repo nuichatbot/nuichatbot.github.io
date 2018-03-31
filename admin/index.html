@@ -159,10 +159,10 @@ a:hover {cursor:pointer}
 							"<button class=\"btn btn-danger\" onclick=\"removeUsr("+id+")\">End chat</button>");
 						return;
 					}
-					var profile_pic_id = data.profile_pic.match(/[0-9]+_[0-9]+_[0-9]+/);
-					profile_pic_id = profile_pic_id[0].split('_');
+					/*var profile_pic_id = data.profile_pic.match(/[0-9]+_[0-9]+_[0-9]+/);
+					profile_pic_id = profile_pic_id[0].split('_');*/
 					$('#nuiinfo').html("<b>id: "+id+ '</b><br/>' +data.last_name + ', ' + data.first_name + '<br/>' + data.locale + ', ' + data.gender +
-						', <a href=\"https://fb.com/'+profile_pic_id[1]+'\" target=\"_blank\">link fb</a><br/>' +
+						/*', <a href=\"https://fb.com/'+profile_pic_id[1]+'\" target=\"_blank\">link fb</a><br/>' +*/
 						"<img src=\""+data.profile_pic+"\" width=\"100px\"/><br/>"+
 						"<button class=\"btn btn-danger\" onclick=\"removeUsr("+id+")\">End chat</button>");
 				},
